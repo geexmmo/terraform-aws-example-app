@@ -8,6 +8,13 @@ resource "aws_lb_target_group" "ghost-ec2" {
   protocol = "HTTP"
   vpc_id   = aws_vpc.cloudx.id
 }
+resource "aws_lb_target_group" "ghost-ecs" {
+  name        = "ghost-ecs"
+  port        = 2368
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = aws_vpc.cloudx.id
+}
 ## alb
 resource "aws_lb" "ghost-alb" {
   name               = "ghost-alb"
@@ -21,8 +28,12 @@ resource "aws_lb_listener" "front_end" {
   port              = "80"
   protocol          = "HTTP"
 
+  #   default_action {
+  #     type             = "forward"
+  #     target_group_arn = aws_lb_target_group.ghost-ec2.arn
+  #   }
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.ghost-ec2.arn
+    target_group_arn = aws_lb_target_group.ghost-ecs.arn
   }
 }

@@ -8,3 +8,9 @@ variable "aws_rds_password" {
   type        = string
   default     = "NYied$UPL##9ui"
 }
+
+variable "ghost_docker_image" {
+  description = "Ghost Docker image"
+  type        = string
+  default     = "ghost:4.12.1"
+}

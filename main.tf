@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.19.0"
     }
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.17.0"
+    }
   }
 
   required_version = ">= 1.2.0"
@@ -19,6 +23,8 @@ provider "aws" {
 data "aws_availability_zones" "available" {
   state = "available"
 }
+
+# data "aws_caller_identity" "current" {}
 
 data "http" "myip" {
   url = "http://ipv4.icanhazip.com"
@@ -73,11 +79,25 @@ data "aws_subnet" "cloudx-private" {
   for_each = toset(data.aws_subnets.cloudx-private.ids)
   id       = each.value
 }
-
-
-##
-# Output ALB URL
-##
-output "ALB_result" {
-  value = [aws_lb.ghost-alb.dns_name]
+# ECSPrivate
+data "aws_subnets" "ecs-private" {
+  filter {
+    name   = "vpc-id"
+    values = data.aws_vpcs.cloudx.ids
+  }
+  filter {
+    name   = "tag:Type"
+    values = ["ECSPrivate"]
+  }
 }
+data "aws_subnet" "ecs-private" {
+  for_each = toset(data.aws_subnets.ecs-private.ids)
+  id       = each.value
+}
+
+# ##
+# # Output ALB URL
+# ##
+# output "ALB_result" {
+#   value = [aws_lb.ghost-alb.dns_name]
+# }

@@ -47,6 +47,14 @@ resource "aws_security_group" "mysql" {
   }
 }
 
+resource "aws_security_group" "fargate_pool" {
+  name        = "fargate_pool"
+  description = "Allows access for Fargate instances"
+  vpc_id      = aws_vpc.cloudx.id
+  tags = {
+    Name = "fargate_pool"
+  }
+}
 ##
 # SG RULES
 ##
@@ -54,12 +62,21 @@ resource "aws_security_group" "mysql" {
 ## bastion
 resource "aws_security_group_rule" "bastion_in_ssh_me" {
   type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["${chomp(data.http.myip.body)}/32"]
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks = ["0.0.0.0/0"]
+  # cidr_blocks       = ["${chomp(data.http.myip.body)}/32"]
   security_group_id = aws_security_group.bastion.id
 }
+# resource "aws_security_group_rule" "bastion_in_ssh_bastion" {
+#   type              = "ingress"
+#   from_port         = 22
+#   to_port           = 22
+#   protocol          = "tcp"
+#   source_security_group_id = aws_security_group.bastion.id
+#   security_group_id = aws_security_group.bastion.id
+# }
 resource "aws_security_group_rule" "bastion_egress" {
   type              = "egress"
   from_port         = 0
@@ -118,13 +135,29 @@ resource "aws_security_group_rule" "alb_egress_ec2_pool" {
   source_security_group_id = aws_security_group.ec2_pool.id
   security_group_id        = aws_security_group.alb.id
 }
-## efs
+resource "aws_security_group_rule" "alb_egress_fargate_pool" {
+  type                     = "egress"
+  from_port                = 2368
+  to_port                  = 2368
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.fargate_pool.id
+  security_group_id        = aws_security_group.alb.id
+}
+# efs
 resource "aws_security_group_rule" "efs_in_efs_ec2_pool" {
   type                     = "ingress"
   from_port                = 2049
   to_port                  = 2049
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.ec2_pool.id
+  security_group_id        = aws_security_group.efs.id
+}
+resource "aws_security_group_rule" "efs_in_efs_fargate_pool" {
+  type                     = "ingress"
+  from_port                = 2049
+  to_port                  = 2049
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.fargate_pool.id
   security_group_id        = aws_security_group.efs.id
 }
 resource "aws_security_group_rule" "efs_egress_vpc" {
@@ -136,13 +169,21 @@ resource "aws_security_group_rule" "efs_egress_vpc" {
   security_group_id = aws_security_group.efs.id
 }
 
-## mysql
+# mysql
 resource "aws_security_group_rule" "mysql_in_ec2_pool" {
   type                     = "ingress"
   from_port                = 3306
   to_port                  = 3306
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.ec2_pool.id
+  security_group_id        = aws_security_group.mysql.id
+}
+resource "aws_security_group_rule" "mysql_in_fargate_pool" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.fargate_pool.id
   security_group_id        = aws_security_group.mysql.id
 }
 
@@ -153,4 +194,38 @@ resource "aws_security_group_rule" "mysql_egress_mysql" {
   protocol                 = "-1"
   source_security_group_id = aws_security_group.mysql.id
   security_group_id        = aws_security_group.mysql.id
+}
+
+## ECS
+resource "aws_security_group_rule" "fargate_pool_in_efs" {
+  type                     = "ingress"
+  from_port                = 2049
+  to_port                  = 2049
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.efs.id
+  security_group_id        = aws_security_group.fargate_pool.id
+}
+resource "aws_security_group_rule" "fargate_pool_in_elb" {
+  type                     = "ingress"
+  from_port                = 2368
+  to_port                  = 2368
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb.id
+  security_group_id        = aws_security_group.fargate_pool.id
+}
+resource "aws_security_group_rule" "fargate_pool_in_bastion" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  source_security_group_id = aws_security_group.bastion.id
+  security_group_id        = aws_security_group.fargate_pool.id
+}
+resource "aws_security_group_rule" "fargate_pool_out_any" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.fargate_pool.id
 }
