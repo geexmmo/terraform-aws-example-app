@@ -24,3 +24,6 @@ resource "aws_db_instance" "cloudx" {
     "Name" = "cloudx"
   }
 }
+# output "rds" {
+#   value = aws_db_instance.cloudx.identifier
+# }

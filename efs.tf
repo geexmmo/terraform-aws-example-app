@@ -10,7 +10,9 @@ resource "aws_efs_file_system" "ghost_content" {
     Name = "ghost_content"
   }
 }
-
+# output "efstest" {
+#   value = aws_efs_file_system.ghost_content.id
+# }
 resource "aws_efs_mount_target" "cloudx_a" {
   file_system_id  = aws_efs_file_system.ghost_content.id
   subnet_id       = aws_subnet.cloudx_a.id

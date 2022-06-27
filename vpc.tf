@@ -134,8 +134,8 @@ resource "aws_route_table" "ecs-private-rt" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    # gateway_id = 
-    instance_id = aws_instance.bastion.id
+    # gateway_id = aws_internet_gateway.gwcloudx.id 
+    # instance_id = aws_instance.bastion.id
     network_interface_id = aws_instance.bastion.primary_network_interface_id
   }
 

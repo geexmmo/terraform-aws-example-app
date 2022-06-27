@@ -25,7 +25,7 @@ resource "aws_ecs_task_definition" "ghost" {
   [
     {
       "name" : "ghost-task",
-      "image" : "343122002777.dkr.ecr.us-east-1.amazonaws.com/ghost:latest",
+      "image" : "${aws_ecr_repository.ghost.repository_url}:latest",
       "essential" : true,
       "environment" : [
         { "name" : "database__client", "value" : "mysql" },
@@ -77,62 +77,3 @@ resource "aws_ecs_service" "ghost" {
     security_groups  = [aws_security_group.fargate_pool.id]
   }
 }
-
-# resource "aws_ecs_task_definition" "hello_world" {
-#   family                   = "hello-world-app"
-#   network_mode             = "awsvpc"
-#   requires_compatibilities = ["FARGATE"]
-#   execution_role_arn       = aws_iam_role.ecs-role.arn
-#   cpu                      = 1024
-#   memory                   = 2048
-
-#   container_definitions = <<DEFINITION
-# [
-#   {
-#     "image": "bitnami/nginx",
-#     "cpu": 1024,
-#     "memory": 2048,
-#     "name": "hello-world-app",
-#     "networkMode": "awsvpc",
-#     "portMappings": [
-#       {
-#         "containerPort": 8080,
-#         "hostPort": 8080
-#       }
-#     ],
-#     "logConfiguration": {
-#       "logDriver": "awslogs",
-#       "options": {
-#         "awslogs-group": "test",
-#         "awslogs-region": "us-east-1",
-#         "awslogs-stream-prefix": "ecs"
-#       }
-#     }
-#   }
-# ]
-# DEFINITION
-# }
-
-# resource "aws_ecs_cluster" "main" {
-#   name = "example-cluster"
-# }
-
-# resource "aws_ecs_service" "hello_world" {
-#   name            = "hello-world-service"
-#   cluster         = aws_ecs_cluster.main.id
-#   task_definition = aws_ecs_task_definition.hello_world.arn
-#   desired_count   = 1
-#   launch_type     = "FARGATE"
-
-#   network_configuration {
-#     security_groups = [aws_security_group.fargate_pool.id]
-#     subnets         = [for s in data.aws_subnet.ecs-private : s.id]
-#   }
-
-#   load_balancer {
-#     target_group_arn = aws_lb_target_group.ghost-ecs.id
-#     container_name   = "hello-world-app"
-#     container_port   = 8080
-#   }
-#   depends_on = [aws_lb_listener.front_end]
-# }
