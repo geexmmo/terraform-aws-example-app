@@ -49,7 +49,7 @@ resource "aws_ecs_task_definition" "ghost" {
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "test",
+          "awslogs-group": "ghost-ecr-containers-group",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }

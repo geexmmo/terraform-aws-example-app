@@ -28,6 +28,11 @@ locals {
         }
         ]
 }
+
+resource "aws_cloudwatch_log_group" "ghost-ecr-containers-group" {
+  name = "ghost-ecr-containers-group"
+}
+
 resource "aws_cloudwatch_dashboard" "ec2util" {
   dashboard_name = "ec2util"
 
@@ -154,6 +159,7 @@ resource "aws_cloudwatch_dashboard" "ec2util" {
     }])
   })
 }
+
 
 
 # resource "aws_cloudwatch_dashboard" "ecsutil" {
